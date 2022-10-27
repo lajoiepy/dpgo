@@ -18,6 +18,20 @@
 
 namespace DPGO {
 
+std::pair<unsigned char, size_t> key_to_robot_keyframe(size_t key) {
+  const size_t keyBits = sizeof(size_t) * 8;
+  const size_t chrBits = sizeof(unsigned char) * 8;
+  const size_t lblBits = sizeof(unsigned char) * 8;
+  const size_t indexBits = keyBits - chrBits - lblBits;
+  const size_t chrMask = ((size_t)(std::numeric_limits<unsigned char>::max())) << (indexBits + lblBits);
+  const size_t lblMask = ((size_t)(std::numeric_limits<unsigned char>::max())) << indexBits;
+  const size_t indexMask = ~(chrMask | lblMask);
+  unsigned char c_ = (unsigned char)((key & chrMask) >> (indexBits + lblBits));
+  unsigned char label_ = (unsigned char)((key & lblMask) >> indexBits);
+  size_t j_ = key & indexMask;
+  return std::make_pair(c_, j_);
+}
+
 void writeMatrixToFile(const Matrix &M, const std::string &filename) {
   std::ofstream file;
   file.open(filename);
@@ -111,10 +125,12 @@ std::vector<RelativeSEMeasurement> read_g2o_file(const std::string &filename,
       // Fill in elements of this measurement
 
       // Pose ids
-      measurement.r1 = 0;
-      measurement.r2 = 0;
-      measurement.p1 = i;
-      measurement.p2 = j;
+      auto key_i = key_to_robot_keyframe(i);
+      auto key_j = key_to_robot_keyframe(j);
+      measurement.r1 = key_i.first;
+      measurement.r2 = key_j.first;
+      measurement.p1 = key_i.second;
+      measurement.p2 = key_j.second;
 
       // Raw measurements
       measurement.t = Eigen::Matrix<double, 2, 1>(dx, dy);
@@ -150,10 +166,12 @@ std::vector<RelativeSEMeasurement> read_g2o_file(const std::string &filename,
       // Fill in elements of the measurement
 
       // Pose ids
-      measurement.r1 = 0;
-      measurement.r2 = 0;
-      measurement.p1 = i;
-      measurement.p2 = j;
+      auto key_i = key_to_robot_keyframe(i);
+      auto key_j = key_to_robot_keyframe(j);
+      measurement.r1 = key_i.first;
+      measurement.r2 = key_j.first;
+      measurement.p1 = key_i.second;
+      measurement.p2 = key_j.second;
 
       // Raw measurements
       measurement.t = Eigen::Matrix<double, 3, 1>(dx, dy, dz);
@@ -176,16 +194,13 @@ std::vector<RelativeSEMeasurement> read_g2o_file(const std::string &filename,
 
     } else if ((token == "VERTEX_SE2") || (token == "VERTEX_SE3:QUAT")) {
       // This is just initialization information, so do nothing
+      num_poses++;
       continue;
     } else {
       std::cout << "Error: unrecognized type: " << token << "!" << std::endl;
       assert(false);
     }
 
-    // Update maximum value of poses found so far
-    size_t max_pair = std::max<double>(measurement.p1, measurement.p2);
-
-    num_poses = ((max_pair > num_poses) ? max_pair : num_poses);
     measurements.push_back(measurement);
   }  // while
 

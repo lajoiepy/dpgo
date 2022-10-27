@@ -94,6 +94,10 @@ add_executable(multi-robot-example
 		examples/MultiRobotExample.cpp)
 target_link_libraries(multi-robot-example DPGO)
 
+add_executable(dpgo_compare
+		examples/MultiRobotCSLAMComparison.cpp)
+target_link_libraries(dpgo_compare DPGO)
+
 add_executable(chordal-initialization-example
 		examples/ChordalInitializationExample.cpp)
 target_link_libraries(chordal-initialization-example DPGO)
