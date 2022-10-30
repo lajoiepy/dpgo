@@ -68,13 +68,13 @@ void PGOLogger::logTrajectory(unsigned int d, unsigned int n, const Matrix &T, c
     Eigen::Quaternion<double> quat(R);
     Matrix t = T.block(0, i * (d + 1) + d, d, 1);
     file << i << ",";
+    file << t(0) << ",";
+    file << t(1) << ",";
+    file << t(2) << ",";
     file << quat.x() << ",";
     file << quat.y() << ",";
     file << quat.z() << ",";
-    file << quat.w() << ",";
-    file << t(0) << ",";
-    file << t(1) << ",";
-    file << t(2) << "\n";
+    file << quat.w() << "\n";
   }
 
   file.close();

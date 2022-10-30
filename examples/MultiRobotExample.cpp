@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
   r = 5;
   bool acceleration = true;
   bool verbose = false;
-  unsigned numIters = 10;
+  unsigned numIters = 100;
 
   // Construct the centralized problem (used for evaluation)
   SparseMatrix QCentral = constructConnectionLaplacianSE(dataset);

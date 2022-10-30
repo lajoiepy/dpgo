@@ -1310,7 +1310,7 @@ void PGOAgent::log_trajectory(){
     Matrix T;
     if (getTrajectoryInGlobalFrame(T)) {
       mLogger.logTrajectory(dimension(), num_poses(), T, "robot+" + std::to_string(getID()) + "+trajectory_optimized.csv");
-      std::cout << "Saved optimized trajectory to " << mParams.logDirectory << std::endl;
+      std::cout << "log_traj : Saved optimized trajectory to " << mParams.logDirectory << std::endl;
     }
 
     // Save solution before rounding
