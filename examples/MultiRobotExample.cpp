@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
   r = 5;
   bool acceleration = true;
   bool verbose = false;
-  unsigned numIters = 1000;
+  unsigned numIters = 10;
 
   // Construct the centralized problem (used for evaluation)
   SparseMatrix QCentral = constructConnectionLaplacianSE(dataset);
@@ -128,6 +128,8 @@ int main(int argc, char **argv) {
     PGOAgentParameters options(d, r, num_robots);
     options.acceleration = acceleration;
     options.verbose = verbose;
+    options.logData = true;
+    options.logDirectory = argv[3];
 
     auto *agent = new PGOAgent(robot, options);
 
@@ -250,6 +252,10 @@ int main(int argc, char **argv) {
     for (auto agentPtr : agents) {
       agentPtr->setGlobalAnchor(M);
     }
+  }
+
+  for (auto agentPtr : agents) {
+    agentPtr->log_trajectory();
   }
 
   for (auto agentPtr : agents) {

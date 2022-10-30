@@ -115,7 +115,7 @@ struct PGOAgentParameters {
                      ROPTALG algorithmIn = ROPTALG::RTR,
                      bool accel = false,
                      unsigned restartInt = 30,
-                     RobustCostType costType = RobustCostType::L2,
+                     RobustCostType costType = RobustCostType::GNC_TLS,
                      RobustCostParameters costParams = RobustCostParameters(),
                      bool robust_opt_warm_start = true,
                      unsigned robust_opt_inner_iters = 30,
@@ -274,6 +274,8 @@ class PGOAgent {
    * @brief Get current global iteration number
    */
   inline unsigned iteration_number() const { return mIterationNumber; }
+
+  void log_trajectory();
 
   /**
    * @brief get the current status of this agent
