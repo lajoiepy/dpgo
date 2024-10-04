@@ -1298,4 +1298,24 @@ bool PGOAgent::isDuplicateMeasurement(const RelativeSEMeasurement &m,
   return false;
 }
 
+void PGOAgent::log_trajectory(){
+  if (mParams.logData) {
+    // Save measurements (including final weights)
+    std::vector<RelativeSEMeasurement> measurements = odometry;
+    measurements.insert(measurements.end(), privateLoopClosures.begin(), privateLoopClosures.end());
+    measurements.insert(measurements.end(), sharedLoopClosures.begin(), sharedLoopClosures.end());
+    mLogger.logMeasurements(measurements, "measurements.csv");
+
+    // Save trajectory estimates after rounding
+    Matrix T;
+    if (getTrajectoryInGlobalFrame(T)) {
+      mLogger.logTrajectory(dimension(), num_poses(), T, "robot+" + std::to_string(getID()) + "+trajectory_optimized.csv");
+      std::cout << "log_traj : Saved optimized trajectory to " << mParams.logDirectory << std::endl;
+    }
+
+    // Save solution before rounding
+    writeMatrixToFile(X, mParams.logDirectory + std::to_string(mID) + "_X.txt");
+  }
+}
+
 }  // namespace DPGO

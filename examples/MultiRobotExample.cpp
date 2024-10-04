@@ -55,7 +55,9 @@ int main(int argc, char **argv) {
   r = 5;
   bool acceleration = true;
   bool verbose = false;
-  unsigned numIters = 1000;
+  unsigned numIters = 100;
+
+  unsigned total_communication_bytes = 0;
 
   // Construct the centralized problem (used for evaluation)
   SparseMatrix QCentral = constructConnectionLaplacianSE(dataset);
@@ -128,6 +130,8 @@ int main(int argc, char **argv) {
     PGOAgentParameters options(d, r, num_robots);
     options.acceleration = acceleration;
     options.verbose = verbose;
+    options.logData = true;
+    options.logDirectory = argv[3];
 
     auto *agent = new PGOAgent(robot, options);
 
@@ -135,6 +139,9 @@ int main(int argc, char **argv) {
     if (robot > 0) {
       Matrix M;
       agents[0]->getLiftingMatrix(M);
+
+      total_communication_bytes += agents[0]->dimension() * agents[0]->relaxation_rank() * sizeof(double);
+
       agent->setLiftingMatrix(M);
     }
 
@@ -184,6 +191,9 @@ int main(int argc, char **argv) {
       if (!robotPtr->getSharedPoseDict(sharedPoses)) {
         continue;
       }
+
+      total_communication_bytes += (robotPtr->dimension() + 1) * robotPtr->relaxation_rank() * sizeof(double) * sharedPoses.size();
+
       selectedRobotPtr->setNeighborStatus(robotPtr->getStatus());
       selectedRobotPtr->updateNeighborPoses(robotPtr->getID(), sharedPoses);
     }
@@ -196,6 +206,7 @@ int main(int argc, char **argv) {
         if (!robotPtr->getAuxSharedPoseDict(auxSharedPoses)) {
           continue;
         }
+        total_communication_bytes += (robotPtr->dimension() + 1) * robotPtr->relaxation_rank() * sizeof(double) * auxSharedPoses.size();
         selectedRobotPtr->setNeighborStatus(robotPtr->getStatus());
         selectedRobotPtr->updateAuxNeighborPoses(robotPtr->getID(), auxSharedPoses);
       }
@@ -253,8 +264,19 @@ int main(int argc, char **argv) {
   }
 
   for (auto agentPtr : agents) {
+    agentPtr->log_trajectory();
+  }
+
+  for (auto agentPtr : agents) {
     agentPtr->reset();
   }
+
+  // Write total_communication_bytes to file
+  std::ofstream outfile;
+  std::cout << "Writing total_communication_bytes to file " << std::string(argv[3]) + "/dpgo_total_communication_bytes.txt" << std::endl;
+  outfile.open(std::string(argv[3]) + "/dpgo_total_communication_bytes.txt", std::ios_base::out); 
+  outfile << total_communication_bytes << std::endl; 
+  outfile.close();
 
   exit(0);
 }
